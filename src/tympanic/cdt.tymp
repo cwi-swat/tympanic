@@ -1,0 +1,37 @@
+mapping CDTAst
+
+import org.eclipse.cdt.core.dom.ast
+export lang::cdt::ast::CDT
+
+types
+  IASTExpression => Expression
+  IASTInitializerClause => Expression
+  IASTStatement => Statement
+  IASTDeclaration => Declaration
+
+constructors
+
+IASTTranslationUnit getDeclarations:
+  translationUnit(declarations)
+
+IASTCompoundStatement getStatements: 
+  compoundStatement(statements) // list
+
+IASTReturnStatement getReturnValue?: 
+  return(expression) // Maybe
+
+ICPPASTIfStatement getConditionExpression != null, getThenClause, getElseClause?: 
+  if(condition, then, else)
+
+ICPPASTIfStatement getConditionDeclaration != null, getThenClause, getElseClause?: 
+  ifWithDeclaration(conditionDecl, then, else)
+
+ICPPASTArraySubscriptExpression getArrayExpression, getArgument: 
+  arraySubscript(arrayExpression, argument)
+
+IASTBinaryExpression getOperator == 0, getOperand1, getInitOperand2: 
+  binaryExpression(Operator op = plus(), lhs, rhs)
+  
+  
+//IASTBinaryExpression %getOperator == 0, getOperand1, getInitOperand2: 
+//  add(lhs, rhs)
