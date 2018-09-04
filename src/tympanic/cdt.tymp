@@ -4,10 +4,11 @@ import org.eclipse.cdt.core.dom.ast
 export lang::cdt::ast::CDT
 
 types
-  IASTExpression => Expression
   IASTInitializerClause => Expression
   IASTStatement => Statement
   IASTDeclaration => Declaration
+  IASTName => Name
+  IASTTranslationUnit => Declaration
 
 constructors
 
@@ -31,7 +32,6 @@ ICPPASTArraySubscriptExpression getArrayExpression, getArgument:
 
 IASTBinaryExpression getOperator == 0, getOperand1, getInitOperand2: 
   binaryExpression(Operator op = plus(), lhs, rhs)
-  
-  
-//IASTBinaryExpression %getOperator == 0, getOperand1, getInitOperand2: 
-//  add(lhs, rhs)
+    
+IASTBinaryExpression %getOperator == 0, getOperand1, getInitOperand2: 
+  add(lhs, rhs)
