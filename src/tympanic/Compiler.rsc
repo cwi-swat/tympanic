@@ -122,3 +122,20 @@ loc getJavaField(Id field, loc class) {
   throw "Failed on <field> and <class>";
 }
 
+void compileMarshaller(ASTMapping astMapping, M3 m3model) {
+  fillRelations(astMapping, m3model);
+  str marshaller
+    = "class Marshaller {
+      '  private static TypeStore typestore = new TypeStore();
+      '  private static TypeFactory tf = 
+      '<for (str adtName <- adtNames) {>  public static IConstructor map(<adtName> node) {
+      '    return new Marshaller().visit(node);
+      '  }
+      '<}>
+      '<for (str adtName <- adtNames) {>  public IConstructor visit(<adtName> node) {
+      '    throw new RuntimeException(\"Encountered unknown <adtName> subclass \" + node.getClass().getSimpleName());
+      '  }
+      '<}>
+      '}";
+  println(marshaller);
+}
