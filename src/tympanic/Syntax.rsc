@@ -4,7 +4,8 @@ extend lang::std::Layout;
 extend lang::std::Id;
 
 start syntax ASTMapping 
-  = "mapping" Id Import* imports 
+  = "mapping" Id
+    Import* imports 
     "export" {Id "::"}+ export
     "types" Datatype* datatypes 
     "constructors" Mapping* mappings;
@@ -17,15 +18,15 @@ syntax Mapping
   = Id javaType {JavaField ","}* fields ":" Constructor constructor;
 
 syntax JavaField
-  = Field
-  | "%" Field // skipped
+  = Field field
+  | "%" Field field //skipped
   ;
 
 syntax Field
-  = Id
-  | Id "==" JavaValue
-  | Id "!=" JavaValue
-  | Id "?"
+  = Id id
+  | Id id "==" JavaValue val
+  | Id id "!=" JavaValue val
+  | Id id "?"
   ;
   
 syntax Constructor
@@ -59,7 +60,7 @@ lexical Int
 
 
 syntax Arg
-  = Id
+  = Id name
   | Id type Id name "=" RascalValue value
   ;  
 
