@@ -221,6 +221,12 @@ void compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '<for (str adtName <- range(idToStr)) {>  private static final Type _<adtName> = tf.abstractDataType(typestore, \"<adtName>\");
       '<}>
       '  <declareTypes(astMapping, m3model)> 
+      '  private static final Type _Maybe = tf.abstractDataType(typestore, \"Maybe\");
+      '  private static final Type _Maybe_nothing
+      '    = tf.constructor(typestore, _Maybe, \"nothing\");
+      '  private static final Type _Maybe_just
+      '    = tf.constructor(typestore, _Maybe, \"just\", tf.parameterType(\"A\"), \"val\");
+      '
       '<for (Id adtName <- idToStr) {>  public IConstructor map(<adtName> node) {
       '    return new Marshaller(vf).visit(node);
       '  }
