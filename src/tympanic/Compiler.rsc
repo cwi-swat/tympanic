@@ -197,6 +197,20 @@ str declareTypes(ASTMapping astMapping, M3 m3model) {
   return ret;
 }
 
+str declareAdditionalDatatypes(ASTMapping astMapping) {
+  str ret = "";
+  set[str] handled = {};
+  for (Id typ <- {typ | /(Arg)`<Id typ> <Id _> = <RascalValue _>` := astMapping}, "<typ>" notin handled) {
+    handled += "<typ>";
+    ret += "private static final Type _<typ> = tf.abstractDataType(typestore, \"<typ>\");\n";
+    for (/(Arg)`<Id typ> <Id _> = <Id cname> ( <{RascalValue ","}* _> )` := astMapping) {
+      ret += "private static final Type _<typ>_<cname>
+             '  = tf.constructor(typestore, _<typ>, \"<cname>\");\n";
+    }
+  }
+  return ret;
+}
+
 void compileMarshaller(ASTMapping astMapping, M3 m3model) {
   fillRelations(astMapping, m3model);
   str package = replaceAll("<astMapping.export>.internal", "::", ".");
@@ -227,6 +241,7 @@ void compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '  private static final Type _Maybe_just
       '    = tf.constructor(typestore, _Maybe, \"just\", tf.parameterType(\"A\"), \"val\");
       '
+      '  <declareAdditionalDatatypes(astMapping)>
       '<for (Id adtName <- idToStr) {>  public IConstructor map(<adtName> node) {
       '    return new Marshaller(vf).visit(node);
       '  }
