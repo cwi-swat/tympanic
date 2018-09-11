@@ -226,17 +226,16 @@ str declareAdditionalDatatypes(ASTMapping astMapping) {
 
 void compileMarshaller(ASTMapping astMapping, M3 m3model) {
   fillRelations(astMapping, m3model);
-  str package = replaceAll("<astMapping.export>.internal", "::", ".");
   str marshaller
-    = "package <package>; 
+    = "package <replaceAll("<astMapping.export>.internal", "::", ".")>; 
       '
       'import io.usethesource.vallang.*;
       'import io.usethesource.vallang.type.*;
       '
-      '<for (loc l <- range(javaIds)) {>import <unescapeJavaType(l)>;
+      '<for (loc l <- sort(range(javaIds))) {>import <unescapeJavaType(l)>;
       '<}>
       '
-      'class Marshaller {
+      'public class Marshaller {
       '  private static TypeStore typestore = new TypeStore();
       '  private static TypeFactory tf = TypeFactory.getInstance();
       '  private IValueFactory vf;
