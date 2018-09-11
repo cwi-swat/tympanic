@@ -170,7 +170,12 @@ str makeConstructor(ASTMapping astMapping, Mapping mapping, Id adtName) {
   for (Arg arg <- mapping.constructor.args) {
     rascalArgs += arg;
   }
-  for (JavaField jf <- mapping.fields) {
+  list[JavaField] javaFields = [];
+  for (jf:(JavaField)`<Field _>` <- mapping.fields) {
+    javaFields += jf; 
+  }
+  for (Arg arg <- mapping.constructor.args) {
+    JavaField jf = javaFields[i];
     loc jfloc = getJavaField(jf.field.id, mloc);
     str javaArgType = getJavaArgType(jfloc);
     if ((Arg)`<Id typ> <Id name> = <RascalValue val>` := rascalArgs[i]) {
@@ -194,16 +199,40 @@ str makeConstructor(ASTMapping astMapping, Mapping mapping, Id adtName) {
     }
     i = i + 1;
   }
-  ret += "return vf.constructor(_<idToStr[adtName]>_<mapping.javaType><("" | "<it>, $arg<n>" | n <- [0..i])>);";
+  ret += "return vf.constructor(_<idToStr[adtName]>_<mapping.constructor.name><("" | "<it>, $arg<n>" | n <- [0..i])>);";
   return ret;
+}
+
+str getArgumentType(Field field, Arg arg, Mapping mapping) {
+  if ((Arg)`<Id typ> <Id _> = <RascalValue _>` := arg){ 
+    return "_<typ>";
+  } else {
+    str typ = "<makeArg(m3.types[getJavaField(field.id, javaIds[mapping.javaType])])>";
+    switch (typ) {
+      case /list\[<t:.*>\]/ : return "tf.listType(_<t>)";
+      default: return "_<typ>";
+    }
+  }
 }
 
 str declareTypes(ASTMapping astMapping, M3 m3model) {
   str ret = "";
-  for (str adtName <- range(idToStr)) {
-    for (str ctor <- javaNtToCtor[adtName]) {
-      ret += "private static final Type _<adtName>_<ctor>
-             '  = tf.constructor(typestore, _<adtName>, \"ctor\"<("" | "<it>, tf.valueType(), <argName>" | argName <- ["null", "null"])>);\n";
+  set[str] handled = {};
+  for (Id adtName <- idToStr) {
+    for (/Mapping mapping <- astMapping.mappings, getNonterminal(javaIds[mapping.javaType]) == javaIds[adtName], "_<idToStr[adtName]>_<mapping.constructor.name>" notin handled) {
+      handled += "_<idToStr[adtName]>_<mapping.constructor.name>";
+      list[Field] fields = [];
+      for ((JavaField)`<Field f>` <- mapping.fields) {
+        fields += f;
+      }
+      list[Arg] args = [];
+      for (arg <- mapping.constructor.args) {
+        args += arg;
+      }
+      list[tuple[Field,Arg]] argMap = [<fields[i], args[i]> | i <- [0..size(fields)]];
+      int i = 0;
+      ret += "private static final Type _<idToStr[adtName]>_<mapping.constructor.name>
+             '  = tf.constructor(typestore, _<idToStr[adtName]>, \"<mapping.constructor.name>\"<("" | "<it>, <getArgumentType(field, arg, mapping)>, \"<arg.name>\"" | <field, arg> <- argMap)>);\n";
     }
     ret += "\n";
   }
@@ -246,6 +275,8 @@ void compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '
       '<for (str adtName <- range(idToStr)) {>  private static final Type _<adtName> = tf.abstractDataType(typestore, \"<adtName>\");
       '<}>
+      '  <declareAdditionalDatatypes(astMapping)>
+      '
       '  <declareTypes(astMapping, m3model)> 
       '  private static final Type _Maybe = tf.abstractDataType(typestore, \"Maybe\");
       '  private static final Type _Maybe_nothing
@@ -253,7 +284,6 @@ void compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '  private static final Type _Maybe_just
       '    = tf.constructor(typestore, _Maybe, \"just\", tf.parameterType(\"A\"), \"val\");
       '
-      '  <declareAdditionalDatatypes(astMapping)>
       '<for (Id adtName <- idToStr) {>  public IConstructor map(<adtName> node) {
       '    return new Marshaller(vf).visit(node);
       '  }
