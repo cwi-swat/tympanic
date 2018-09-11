@@ -5,6 +5,7 @@ import List;
 import Map;
 import ParseTree;
 import Set;
+import String;
 import ValueIO;
 
 import lang::java::m3::Core;
@@ -38,6 +39,8 @@ map[Id,loc] javaIdToLoc(ASTMapping mapping, M3 m3) {
     }
     ret += (id : matches[0]);
   }
+  //for (Id i <- ret) println("<i> : <ret[i]>");
+  //return ();
   return ret;
 }
 
@@ -48,12 +51,6 @@ loc getNonterminal(loc class) {
     }
   }
   throw "Could not decide for <class>";
-}
-
-loc fieldToRascalType(JavaField field, ex){
-  visit(field) {
-    case foo: ;
-  }
 }
 
 str makeArg({method(_,_,TypeSymbol ts, _)}) = makeArg({ts});
@@ -69,6 +66,7 @@ void fillRelations(ASTMapping astMapping, M3 m3model) {
   topLevels = {javaIds[bla] | bla <- adtIds};
   ex = m3.extends*;
   idToStr = (typ.javaType : "<typ.adt>" | typ <- astMapping.datatypes);
+  javaNtToCtor = {<idToStr[invertUnique(javaIds)[getNonterminal(javaIds[rule.javaType])]], "<rule.javaType>"> | /Mapping rule := astMapping};
 }
 
 void compileADT(ASTMapping astMapping, M3 m3model) {
@@ -97,6 +95,7 @@ void compileADT(ASTMapping astMapping, M3 m3model) {
     }
     adts += <idToStr[invertUnique(javaIds)[nonterminal]], "<mapping.constructor.name>(<intercalate(", ", args)>)">;
   }
+  println("module <astMapping.export>::Data\n");
   printAdts(compileAdditionalDatatypes(astMapping));
   printAdts(adts);
 }
@@ -104,7 +103,7 @@ void compileADT(ASTMapping astMapping, M3 m3model) {
 void printAdts(rel[str, str] adts) {
   for (dt <- adts<0>) {
     list[str] ctors = sort(adts[dt]);
-    println("data <dt> 
+    println("data <dt>
             '  = <intercalate("\n| ", ctors)>
             '  ;");
   }
@@ -122,18 +121,116 @@ loc getJavaField(Id field, loc class) {
   throw "Failed on <field> and <class>";
 }
 
+void printRelations(ASTMapping astMapping, M3 m3model) {
+  fillRelations(astMapping, m3model);
+  println("adtIds: {\n<for (i<-adtIds){>  <i>\n<}>}");
+  println("adtNames: " + itoString(adtNames));
+  println("javaIds: (\n<for (k<-javaIds){>  <k> : <javaIds[k]>\n<}>)");
+  println("topLevels: " + itoString(topLevels));
+  //println("ex: " + itoString(ex));
+  println("idToStr: (\n<for (k<-idToStr){>  <k> : <idToStr[k]>\n<}>)");
+  println("javaNtToCtor: " + itoString(javaNtToCtor));
+}
+
+str unescapeJavaType(loc javaType) = replaceAll(javaType.path[1..], "/", ".");
+
+str getJavaArgType(loc getterLoc) {
+  TypeSymbol getter = [*m3.types[getterLoc]][0];
+  switch(getter) {
+    case method(getterLoc, _, interface(loc returnType, _), _) : {
+      return unescapeJavaType(returnType);
+    }
+    case method(getterLoc, _, array(interface(loc returnType, _), _), _) : {
+      return unescapeJavaType(returnType)+"[]";
+    }
+    case method(getterLoc, _, TypeSymbol::\int(), _) : {
+      return "int";
+    }
+    default: {
+      println("NYI\n<"<getter>">");
+      throw "";
+    }
+  }
+  
+  return "";
+}
+
+str makeConstructor(ASTMapping astMapping, M3 m3model, str constructor, Id adtName) {
+  //fillRelations(astMapping, m3model);
+  list[Mapping] mappings = [m | /Mapping m := astMapping, "<m.javaType>" == constructor];
+  str ret = "";
+  for (Mapping m <- mappings) {
+    loc mloc = javaIds[m.javaType];
+    int i = 0;
+    for (JavaField jf <- m.fields) {
+      loc jfloc = getJavaField(jf.field.id, mloc);
+      str javaArgType = getJavaArgType(jfloc);
+      if (/\[\]$/ := javaArgType) {
+        ret += "IListWriter $arg<i>_list = vf.listWriter();
+               'for (<javaArgType[0..-2]> $$arg<i> : ((<constructor>) node).<jf.field.id>()) {
+               '  $arg<i>_list.append(visit($$arg<i>));
+               '}
+               'IList $arg<i> = $arg<i>_list.done();\n";
+      } else {
+        ret += "IConstructor $arg<i> = visit(((<constructor>) node).<jf.field.id>());\n";
+      }
+      i = i + 1;
+    }
+    ret += "return vf.constructor(_<idToStr[adtName]>_<constructor><("" | "<it>, $arg<n>" | n <- [0..i])>);";
+  }
+  //println(ret);
+  return ret;
+}
+
+str declareTypes(ASTMapping astMapping, M3 m3model) {
+  //fillRelations(astMapping, m3model);
+  str ret = "";
+  for (str adtName <- range(idToStr)) {
+    for (str ctor <- javaNtToCtor[adtName]) {
+      ret += "private static final Type _<adtName>_<ctor>
+             '  = tf.constructor(typestore, _<adtName>, \"ctor\"<("" | "<it>, tf.valueType(), <argName>" | argName <- ["null", "null"])>);\n";
+    }
+    ret += "\n";
+  }
+  
+  //println(ret);
+  return ret;
+}
+
 void compileMarshaller(ASTMapping astMapping, M3 m3model) {
   fillRelations(astMapping, m3model);
+  str package = replaceAll("<astMapping.export>.internal", "::", ".");
   str marshaller
-    = "class Marshaller {
+    = "package <package>; 
+      '
+      'import io.usethesource.vallang.*;
+      'import io.usethesource.vallang.type.*;
+      '
+      '<for (loc l <- range(javaIds)) {>import <unescapeJavaType(l)>;
+      '<}>
+      '
+      'class Marshaller {
       '  private static TypeStore typestore = new TypeStore();
-      '  private static TypeFactory tf = 
-      '<for (str adtName <- adtNames) {>  public static IConstructor map(<adtName> node) {
-      '    return new Marshaller().visit(node);
+      '  private static TypeFactory tf = TypeFactory.getInstance();
+      '  private IValueFactory vf;
+      '
+      '  public Marshaller(IValueFactory vf) {
+      '    this.vf = vf;
+      '  }
+      '
+      '<for (str adtName <- range(idToStr)) {>  private static final Type _<adtName> = tf.abstractDataType(typestore, \"<adtName>\");
+      '<}>
+      '  <declareTypes(astMapping, m3model)> 
+      '<for (Id adtName <- idToStr) {>  public IConstructor map(<adtName> node) {
+      '    return new Marshaller(vf).visit(node);
       '  }
       '<}>
-      '<for (str adtName <- adtNames) {>  public IConstructor visit(<adtName> node) {
-      '    throw new RuntimeException(\"Encountered unknown <adtName> subclass \" + node.getClass().getSimpleName());
+      '<for (Id adtName <- idToStr) {>  public IConstructor visit(<adtName> node) {
+      '<for (str ctor <- javaNtToCtor[idToStr[adtName]]) {>    if (node instanceof <ctor>) {
+      '      <makeConstructor(astMapping, m3model, ctor, adtName)>
+      '    }
+      '<}>
+      '    throw new RuntimeException(\"Encountered unknown <adtName> subtype \" + node.getClass().getSimpleName());
       '  }
       '<}>
       '}";
