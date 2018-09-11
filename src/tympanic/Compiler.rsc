@@ -69,8 +69,8 @@ void fillRelations(ASTMapping astMapping, M3 m3model) {
   javaNtToCtor = {<idToStr[invertUnique(javaIds)[getNonterminal(javaIds[rule.javaType])]], "<rule.javaType>"> | /Mapping rule := astMapping};
 }
 
-void compileADT(ASTMapping astMapping, M3 m3model) {
-  fillRelations(astMapping, m3model);
+str compileADT(ASTMapping astMapping, M3 m3model) {
+  //fillRelations(astMapping, m3model);
   
   rel[str, str] adts = {};
   for (Mapping mapping <- astMapping.mappings) {
@@ -95,18 +95,22 @@ void compileADT(ASTMapping astMapping, M3 m3model) {
     }
     adts += <idToStr[invertUnique(javaIds)[nonterminal]], "<mapping.constructor.name>(<intercalate(", ", args)>)">;
   }
-  println("module <astMapping.export>::Data\n");
-  printAdts(compileAdditionalDatatypes(astMapping));
-  printAdts(adts);
+  return "module <astMapping.export>::Data
+         '
+         'import util::Maybe;
+         '<printAdts(compileAdditionalDatatypes(astMapping))>
+         '<printAdts(adts)>";
 }
 
-void printAdts(rel[str, str] adts) {
+str printAdts(rel[str, str] adts) {
+  str ret = "";
   for (dt <- adts<0>) {
     list[str] ctors = sort(adts[dt]);
-    println("data <dt>
-            '  = <intercalate("\n| ", ctors)>
-            '  ;");
+    ret += "data <dt>
+           '  = <intercalate("\n| ", ctors)>
+           '  ;\n";
   }
+  return ret;
 }
 
 rel[str, str] compileAdditionalDatatypes(ASTMapping astMapping) = {<"<arg.\type>","<arg.\value>"> | /arg:(Arg)`<Id typ> <Id _> = <RascalValue val>` := astMapping}; 
@@ -242,19 +246,19 @@ str declareTypes(ASTMapping astMapping, M3 m3model) {
 str declareAdditionalDatatypes(ASTMapping astMapping) {
   str ret = "";
   set[str] handled = {};
-  for (Id typ <- {typ | /(Arg)`<Id typ> <Id _> = <RascalValue _>` := astMapping}, "<typ>" notin handled) {
-    handled += "<typ>";
-    ret += "private static final Type _<typ> = tf.abstractDataType(typestore, \"<typ>\");\n";
-    for (/(Arg)`<Id typ> <Id _> = <Id cname> ( <{RascalValue ","}* _> )` := astMapping) {
-      ret += "private static final Type _<typ>_<cname>
-             '  = tf.constructor(typestore, _<typ>, \"<cname>\");\n";
+  for (Id adt <- {typ | /(Arg)`<Id typ> <Id _> = <RascalValue _>` := astMapping}, "<adt>" notin handled) {
+    handled += "<adt>";
+    ret += "private static final Type _<adt> = tf.abstractDataType(typestore, \"<adt>\");\n";
+    for (/(Arg)`<Id typ> <Id _> = <Id cname> ( <{RascalValue ","}* _> )` := astMapping, typ == adt) {
+      ret += "private static final Type _<adt>_<cname>
+             '  = tf.constructor(typestore, _<adt>, \"<cname>\");\n";
     }
   }
   return ret;
 }
 
-void compileMarshaller(ASTMapping astMapping, M3 m3model) {
-  fillRelations(astMapping, m3model);
+str compileMarshaller(ASTMapping astMapping, M3 m3model) {
+  //fillRelations(astMapping, m3model);
   str marshaller
     = "package <replaceAll("<astMapping.export>.internal", "::", ".")>; 
       '
@@ -299,5 +303,16 @@ void compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '  }
       '<}>
       '}";
-  println(marshaller);
+  //println(marshaller);
+  return marshaller;
+}
+
+void doCompile(ASTMapping astMapping, M3 m3model) {
+  fillRelations(astMapping, m3model);
+  str dataFile = compileADT(astMapping, m3model);
+  str marshallerFile = compileMarshaller(astMapping, m3model);
+  loc dataLoc = |project://tympanic/src| + replaceAll("<astMapping.export>/Data.rsc", "::", "/");
+  loc marshallerLoc = |project://tympanic/src| + replaceAll("<astMapping.export>/internal/Marshaller.java", "::", "/");
+  writeFile(dataLoc, dataFile);
+  writeFile(marshallerLoc, marshallerFile);
 }
