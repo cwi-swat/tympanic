@@ -155,35 +155,50 @@ str getJavaArgType(loc getterLoc) {
   return "";
 }
 
-str makeConstructor(ASTMapping astMapping, M3 m3model, str constructor, Id adtName) {
-  //fillRelations(astMapping, m3model);
-  list[Mapping] mappings = [m | /Mapping m := astMapping, "<m.javaType>" == constructor];
+str makeConstructorGuard(Mapping mapping)
+  = (("true" | "<it>
+               '&& (((<mapping.javaType>) node).<id>() == <jv>)" | /(Field)`<Id id> == <JavaValue jv>` := mapping.fields)
+    | "<it>
+      '&& (((<mapping.javaType>) node).<id>() != <jv>)" | /(Field)`<Id id> != <JavaValue jv>` := mapping.fields);
+
+
+str makeConstructor(ASTMapping astMapping, Mapping mapping, Id adtName) {
   str ret = "";
-  for (Mapping m <- mappings) {
-    loc mloc = javaIds[m.javaType];
-    int i = 0;
-    for (JavaField jf <- m.fields) {
-      loc jfloc = getJavaField(jf.field.id, mloc);
-      str javaArgType = getJavaArgType(jfloc);
-      if (/\[\]$/ := javaArgType) {
-        ret += "IListWriter $arg<i>_list = vf.listWriter();
-               'for (<javaArgType[0..-2]> $$arg<i> : ((<constructor>) node).<jf.field.id>()) {
-               '  $arg<i>_list.append(visit($$arg<i>));
-               '}
-               'IList $arg<i> = $arg<i>_list.done();\n";
-      } else {
-        ret += "IConstructor $arg<i> = visit(((<constructor>) node).<jf.field.id>());\n";
-      }
-      i = i + 1;
-    }
-    ret += "return vf.constructor(_<idToStr[adtName]>_<constructor><("" | "<it>, $arg<n>" | n <- [0..i])>);";
+  loc mloc = javaIds[mapping.javaType];
+  int i = 0;
+  list[Arg] rascalArgs = [];
+  for (Arg arg <- mapping.constructor.args) {
+    rascalArgs += arg;
   }
-  //println(ret);
+  for (JavaField jf <- mapping.fields) {
+    loc jfloc = getJavaField(jf.field.id, mloc);
+    str javaArgType = getJavaArgType(jfloc);
+    if ((Arg)`<Id typ> <Id name> = <RascalValue val>` := rascalArgs[i]) {
+      ret += "IConstructor $arg<i> = vf.constructor(_<typ>_<"<val>"[0..-2]>);\n"; //TODO use val.id
+    } else if (/\[\]$/ := javaArgType) {
+      ret += "IListWriter $arg<i>_list = vf.listWriter();
+             'for (<javaArgType[0..-2]> $$arg<i> : ((<mapping.javaType>) node).<jf.field.id>()) {
+             '  $arg<i>_list.append(visit($$arg<i>));
+             '}
+             'IList $arg<i> = $arg<i>_list.done();\n";
+    } else if ((JavaField)`<Id _>?` := jf) {
+      ret += "IConstructor $arg<i>;
+             '<javaArgType> _$arg<i> = ((<mapping.javaType>) node).<jf.field.id>();
+             'if (_$arg<i> == null) {
+             '  $arg<i> = vf.constructor(_Maybe_nothing);
+             '} else {
+             '  $arg<i> = vf.constructor(_Maybe_just, visit(_$arg<i>));
+             '}\n";
+    } else {
+      ret += "IConstructor $arg<i> = visit(((<mapping.javaType>) node).<jf.field.id>());\n";
+    }
+    i = i + 1;
+  }
+  ret += "return vf.constructor(_<idToStr[adtName]>_<mapping.javaType><("" | "<it>, $arg<n>" | n <- [0..i])>);";
   return ret;
 }
 
 str declareTypes(ASTMapping astMapping, M3 m3model) {
-  //fillRelations(astMapping, m3model);
   str ret = "";
   for (str adtName <- range(idToStr)) {
     for (str ctor <- javaNtToCtor[adtName]) {
@@ -192,8 +207,6 @@ str declareTypes(ASTMapping astMapping, M3 m3model) {
     }
     ret += "\n";
   }
-  
-  //println(ret);
   return ret;
 }
 
@@ -247,10 +260,12 @@ void compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '  }
       '<}>
       '<for (Id adtName <- idToStr) {>  public IConstructor visit(<adtName> node) {
-      '<for (str ctor <- javaNtToCtor[idToStr[adtName]]) {>    if (node instanceof <ctor>) {
-      '      <makeConstructor(astMapping, m3model, ctor, adtName)>
+      '<for (/Mapping mapping <- astMapping.mappings, getNonterminal(javaIds[mapping.javaType]) == javaIds[adtName]) {>    if (node instanceof <mapping.javaType>) {
+      '      if (<makeConstructorGuard(mapping)>) {
+      '        <makeConstructor(astMapping, mapping, adtName)>
+      '      }
       '    }
-      '<}>
+      '<}> 
       '    throw new RuntimeException(\"Encountered unknown <adtName> subtype \" + node.getClass().getSimpleName());
       '  }
       '<}>
