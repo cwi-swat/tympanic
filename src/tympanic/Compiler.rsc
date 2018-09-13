@@ -90,9 +90,6 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
     int i = 0;
     list[Arg] rascalArgs = ([] | it + arg | Arg arg <- mapping.constructor.args);
     for (field:(JavaField)`<Field _>` <- mapping.fields) {
-      if (i >= size(rascalArgs)) {
-        println("#arguments mismatch for <mapping>");
-      }
       rascalArg = rascalArgs[i];
       if ((Arg)`<Id _> <Id _> = <RascalValue _>` := rascalArg) {
         args += "<rascalArg.\type> <rascalArg.name>";
@@ -328,8 +325,28 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
   return marshaller;
 }
 
+void checker(ASTMapping astMapping) {
+  fillRelations(astMapping, m3model);
+  bool foundError = false;
+  for (Mapping mapping <- astMapping.mappings) {
+    //Argument count mismatch
+    //TODO: account for skipped arguments on lhs
+    int javaFields = (0 | it + 1 | JavaField _ <- mapping.fields);
+    int rascalArgs = (0 | it + 1 | Arg _ <- mapping.constructor.args);
+    if (javaFields != rascalArgs) {
+      println("Argument count mismatch (lhs: <javaFields>, rhs: <rascalArgs>) for
+              '  <mapping>");
+      foundError = true;
+    }
+  }
+  if (foundError) {
+    throw "Found errors, aborting";
+  }
+}
+
 void doCompile(ASTMapping astMapping, M3 m3model) {
   fillRelations(astMapping, m3model);
+  checker(astMapping);
   str dataFile = compileADT(astMapping, m3model);
   str marshallerFile = compileMarshaller(astMapping, m3model);
   loc dataLoc = |project://tympanic/src| + replaceAll("<astMapping.export>/Data.rsc", "::", "/");
