@@ -12,6 +12,7 @@ import lang::java::m3::Core;
 import lang::java::m3::TypeSymbol;
 import tympanic::Syntax;
 
+bool relationsFilled = false;
 set[Id] adtIds = {};
 set[str] adtNames = {};
 map[Id, loc] javaIds = ();
@@ -65,6 +66,9 @@ default str makeArg(value v) {
 }
 
 void fillRelations(ASTMapping astMapping, M3 m3model) {
+  if (relationsFilled) {
+    return;
+  }
   m3 = m3model;
   adtIds = {typ.javaType | typ <- astMapping.datatypes};
   adtNames = extractAdts(astMapping.datatypes);
@@ -73,6 +77,7 @@ void fillRelations(ASTMapping astMapping, M3 m3model) {
   ex = m3.extends*;
   idToStr = (typ.javaType : "<typ.adt>" | typ <- astMapping.datatypes);
   javaNtToCtor = {<idToStr[invertUnique(javaIds)[getNonterminal(javaIds[rule.javaType])]], "<rule.javaType>"> | /Mapping rule := astMapping};
+  relationsFilled = true;
 }
 
 str compileADT(ASTMapping astMapping, M3 m3model) {
