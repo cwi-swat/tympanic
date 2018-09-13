@@ -88,10 +88,7 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
     args = [];
     loc nonterminal = getNonterminal(javaIds[mapping.javaType]);
     int i = 0;
-    list[Arg] rascalArgs = [];
-    for (Arg arg <- mapping.constructor.args) {
-      rascalArgs += arg;
-    }
+    list[Arg] rascalArgs = ([] | it + arg | Arg arg <- mapping.constructor.args);
     for (field:(JavaField)`<Field _>` <- mapping.fields) {
       if (i >= size(rascalArgs)) {
         println("#arguments mismatch for <mapping>");
@@ -200,15 +197,9 @@ str makeConstructor(ASTMapping astMapping, Mapping mapping, Id adtName) {
   str ret = "";
   loc mloc = javaIds[mapping.javaType];
   int i = 0;
-  list[Arg] rascalArgs = [];
-  for (Arg arg <- mapping.constructor.args) {
-    rascalArgs += arg;
-  }
-  list[JavaField] javaFields = [];
-  for (jf:(JavaField)`<Field _>` <- mapping.fields) {
-    javaFields += jf; 
-  }
-  for (Arg arg <- mapping.constructor.args) {
+  list[Arg] rascalArgs = ([] | it + arg | Arg arg <- mapping.constructor.args);
+  list[JavaField] javaFields = ([] | it + jf | jf:(JavaField)`<Field _>` <- mapping.fields);
+  for (Arg arg <- rascalArgs) {
     JavaField jf = javaFields[i];
     loc jfloc = getJavaField(jf.field.id, mloc);
     str javaArgType = getJavaArgType(jfloc);
@@ -261,14 +252,8 @@ str declareTypes(ASTMapping astMapping, M3 m3model) {
   for (Id adtName <- idToStr) {
     for (/Mapping mapping <- astMapping.mappings, getNonterminal(javaIds[mapping.javaType]) == javaIds[adtName], "_<idToStr[adtName]>_<mapping.constructor.name>" notin handled) {
       handled += "_<idToStr[adtName]>_<mapping.constructor.name>";
-      list[Field] fields = [];
-      for ((JavaField)`<Field f>` <- mapping.fields) {
-        fields += f;
-      }
-      list[Arg] args = [];
-      for (arg <- mapping.constructor.args) {
-        args += arg;
-      }
+      list[Field] fields = ([] | it + f | (JavaField)`<Field f>` <- mapping.fields);
+      list[Arg] args = ([] | it + arg | arg <- mapping.constructor.args);
       list[tuple[Field,Arg]] argMap = [<fields[i], args[i]> | i <- [0..size(fields)]];
       int i = 0;
       ret += "private static final Type _<idToStr[adtName]>_<mapping.constructor.name>
