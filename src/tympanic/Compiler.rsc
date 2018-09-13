@@ -92,9 +92,9 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
     for (field:(JavaField)`<Field _>` <- mapping.fields) {
       rascalArg = rascalArgs[i];
       if ((Arg)`<Id _> <Id _> = <RascalValue _>` := rascalArg) {
-        args += "<rascalArg.\type> <rascalArg.name>";
+        args += "<rascalArg.\type> \\<rascalArg.name>";
       } else {
-        argName = "<rascalArg.name>";
+        argName = "\\<rascalArg.name>";
         fieldLoc = getJavaField(field.field.id, javaIds[mapping.javaType]);
         argType = makeArg(m3.types[fieldLoc]);
         if ((Field)`<Id _>?` := field.field) {
@@ -105,7 +105,7 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
       }
       i = i + 1;
     }
-    adts += <idToStr[invertUnique(javaIds)[nonterminal]], "<mapping.constructor.name>(<intercalate(", ", args)>)">;
+    adts += <idToStr[invertUnique(javaIds)[nonterminal]], "\\<mapping.constructor.name>(<intercalate(", ", args)>)">;
   }
   return "module <astMapping.export>::Data
          '
@@ -125,7 +125,7 @@ str printAdts(rel[str, str] adts) {
   return ret;
 }
 
-rel[str, str] compileAdditionalDatatypes(ASTMapping astMapping) = {<"<arg.\type>","<arg.\value>"> | /arg:(Arg)`<Id typ> <Id _> = <RascalValue val>` := astMapping}; 
+rel[str, str] compileAdditionalDatatypes(ASTMapping astMapping) = {<"<arg.\type>","\\<arg.\value>"> | /arg:(Arg)`<Id typ> <Id _> = <RascalValue val>` := astMapping}; 
 
 loc getJavaField(Id field, loc class) {
   locs = m3.containment[(m3.extends*)[class]];
