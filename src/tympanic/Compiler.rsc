@@ -57,6 +57,12 @@ str makeArg({method(_,_,TypeSymbol ts, _)}) = makeArg({ts});
 str makeArg({interface(loc l, _)}) = "<idToStr[invertUnique(javaIds)[getNonterminal(l)]]>";
 str makeArg({array(TypeSymbol ts, _)}) = "list[<makeArg({ts})>]";
 str makeArg({TypeSymbol::\int()}) = "int";
+str makeArg({TypeSymbol::\boolean()}) = "bool";
+str makeArg({class(loc l,_)}) = loc l := |java+class:///java/lang/String| ? "str" : makeArg(l);
+default str makeArg(value v) {
+  println("<v>");
+  throw "<v>";
+}
 
 void fillRelations(ASTMapping astMapping, M3 m3model) {
   m3 = m3model;
@@ -77,8 +83,15 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
     args = [];
     loc nonterminal = getNonterminal(javaIds[mapping.javaType]);
     int i = 0;
+    list[Arg] rascalArgs = [];
+    for (Arg arg <- mapping.constructor.args) {
+      rascalArgs += arg;
+    }
     for (field:(JavaField)`<Field _>` <- mapping.fields) {
-      rascalArg = mapping.constructor.args[i];
+      if (i >= size(rascalArgs)) {
+        println("#arguments mismatch for <mapping>");
+      }
+      rascalArg = rascalArgs[i];
       if ((Arg)`<Id _> <Id _> = <RascalValue _>` := rascalArg) {
         args += "<rascalArg.\type> <rascalArg.name>";
       } else {
@@ -150,6 +163,18 @@ str getJavaArgType(loc getterLoc) {
     case method(getterLoc, _, TypeSymbol::\int(), _) : {
       return "int";
     }
+    case method(getterLoc, _, TypeSymbol::\boolean(), _) : {
+      return "boolean";
+    }
+    case method(getterLoc, _, enum(loc enumLoc), _) : {
+      return unescapeJavaType(enumLoc);
+    }
+    case method(getterLoc, _, class(loc classLoc, _), _) : {
+      if (classLoc := |java+class:///java/lang/String|) {
+        return "String";
+      }
+      fail;
+    }
     default: {
       println("NYI\n<"<getter>">");
       throw "";
@@ -198,6 +223,10 @@ str makeConstructor(ASTMapping astMapping, Mapping mapping, Id adtName) {
              '} else {
              '  $arg<i> = vf.constructor(_Maybe_just, visit(_$arg<i>));
              '}\n";
+    } else if (javaArgType == "boolean") {
+      ret += "IBool $arg<i> = vf.bool(((<mapping.javaType>) node).<jf.field.id>());\n";
+    } else if (javaArgType == "String") {
+      ret += "IString $arg<i> = vf.string(((<mapping.javaType>) node).<jf.field.id>());\n";
     } else {
       ret += "IConstructor $arg<i> = visit(((<mapping.javaType>) node).<jf.field.id>());\n";
     }
@@ -214,6 +243,8 @@ str getArgumentType(Field field, Arg arg, Mapping mapping) {
     str typ = "<makeArg(m3.types[getJavaField(field.id, javaIds[mapping.javaType])])>";
     switch (typ) {
       case /list\[<t:.*>\]/ : return "tf.listType(_<t>)";
+      case "bool" : return "tf.boolType()";
+      case "str" : return "tf.stringType()";
       default: return "_<typ>";
     }
   }
