@@ -9,29 +9,540 @@ types
   IASTDeclaration => Declaration
   IASTName => Name
   IASTTranslationUnit => Declaration
+  IASTDeclSpecifier => DeclSpecifier
+  IASTDeclarator => Declarator
+  IASTPointerOperator => PointerOperator
+  IASTInitializer => Expression //TODO: => Initializer?
+  IASTParameterDeclaration => ParameterDeclaration
+  IASTArrayModifier => ArrayModifier
+  IASTTypeId => TypeId
+  IASTEnumerator => Enumerator
+  ICPPASTBaseSpecifier => BaseSpecifier
+  ICPPASTTemplateParameter => TemplateParameter
+  ICPPASTCapture => Capture
+  ICPPASTDesignator => Designator
+  ICPPASTVirtSpecifier => VirtSpecifier
+  //ICPPASTNameSpecifier => Name
+  ICPPASTClassVirtSpecifier => ClassVirtSpecifier
 
 constructors
 
+//TranslationUnit
 IASTTranslationUnit getDeclarations:
   translationUnit(declarations)
 
-IASTCompoundStatement getStatements: 
-  compoundStatement(statements) // list
+//Names
+ICPPASTConversionName toString, getTypeId:
+  conversionName(name, typeId)
 
-IASTReturnStatement getReturnValue?: 
-  return(expression) // Maybe
+ICPPASTOperatorName toString:
+  operatorName(name)
 
-ICPPASTIfStatement getConditionExpression != null, getThenClause, getElseClause?: 
-  if(condition, then, else)
+//TODO: put getQualifier back
+//ICPPASTQualifiedName getQualifier, getLastName:
+//  qualifiedName(qualifier, lastName)
+ICPPASTQualifiedName getLastName:
+  qualifiedName(lastName)
 
-ICPPASTIfStatement getConditionDeclaration != null, getThenClause, getElseClause?: 
-  ifWithDeclaration(conditionDecl, then, else)
+IASTName toString:
+  name(name)
 
-ICPPASTArraySubscriptExpression getArrayExpression, getArgument: 
-  arraySubscript(arrayExpression, argument)
+//FIXME: templateArguments returns IASTNode[]
+//ICPPASTTemplateId getTemplateName, getTemplateArguments:
+//  templateId(templateName, templateArguments)
 
-IASTBinaryExpression getOperator == 0, getOperand1, getInitOperand2: 
+//Declarations
+ICPPASTAliasDeclaration getAlias, getMappingTypeId:
+  aliasDeclaration(alias, mappingTypeId)
+
+ICPPASTExplicitTemplateInstantiation getModifier == ICPPASTExplicitTemplateInstantiation.STATIC, getDeclaration:
+  explicitTemplateInstantiation(ETI modifier = static(), declaration)
+ICPPASTExplicitTemplateInstantiation getModifier == ICPPASTExplicitTemplateInstantiation.INLINE, getDeclaration:
+  explicitTemplateInstantiation(ETI modifier = inline(), declaration)
+ICPPASTExplicitTemplateInstantiation getModifier == ICPPASTExplicitTemplateInstantiation.EXTERN, getDeclaration:
+  explicitTemplateInstantiation(ETI modifier = extern(), declaration)
+ICPPASTExplicitTemplateInstantiation getModifier == 0, getDeclaration:
+  explicitTemplateInstantiation(ETI modifier = missingModifier(), declaration)
+
+ICPPASTLinkageSpecification getLiteral, getDeclarations:
+  linkageSpecification(literal, declarations)
+
+ICPPASTNamespaceAlias getAlias, getMappingName:
+  namespaceAlias(alias, mappingName)
+
+ICPPASTStaticAssertDeclaration getCondition, getMessage:
+  staticAssert(condition, message)
+
+ICPPASTTemplateDeclaration getTemplateParameters, getDeclaration:
+  template(templateParameters, declaration)
+
+ICPPASTTemplateSpecialization getDeclaration:
+  templateSpecialization(declaration)
+
+ICPPASTUsingDeclaration getName, isTypename:
+  usingDeclaration(name, isTypename)
+
+ICPPASTUsingDirective getQualifiedName:
+  usingDirective(qualifiedName)
+
+ICPPASTVisibilityLabel getVisibility == ICPPASTVisibilityLabel.v_public:
+  visibilityLabel(Visibility visibility = v_public())
+ICPPASTVisibilityLabel getVisibility == ICPPASTVisibilityLabel.v_protected:
+  visibilityLabel(Visibility visibility = v_protected())
+ICPPASTVisibilityLabel getVisibility == ICPPASTVisibilityLabel.v_private:
+  visibilityLabel(Visibility visibility = v_private())
+
+IASTASMDeclaration getAssembly:
+  asmDeclaration(assembly)
+
+ICPPASTFunctionWithTryBlock getDeclSpecifier, getDeclarator, getMemberInitializers, getBody, getCatchHandlers:
+  functionWithTryBlock(declSpecifier, declarator, memberInitializers, body, catchHandlers)
+
+//TODO: maybe map onto same constructors as ClaiR?
+ICPPASTFunctionDefinition isDefaulted, isDeleted, getDeclSpecifier, getDeclarator, getMemberInitializers, getBody:
+  functionDefinition(isDefaulted, isDeleted, getDeclSpecifier, getDeclarator, getMemberInitializers, body)
+
+IASTParameterDeclaration getDeclSpecifier, getDeclarator?:
+  parameter(declSpecifier, declarator)
+
+IASTProblemDeclaration:
+  problem()
+
+IASTSimpleDeclaration getDeclSpecifier, getDeclarators:
+  simpleDeclaration(declSpecifier, declarators)
+
+//Initializers TODO: to expression?
+IASTEqualsInitializer getInitializerClause:
+  equalsInitializer(clause)
+
+IASTInitializerList getClauses:
+  initializerList(clauses)
+
+ICPPASTConstructorChainInitializer getMemberInitializerId, getInitializer:
+  constructorChainInitializer(memberInitializerId, initializer)
+
+ICPPASTConstructorInitializer getArguments:
+  constructorChainInitializer(arguments)
+
+ICPPASTDesignatedInitializer getDesignators, getOperand:
+  designatedInitializer(designators, operand)
+
+
+
+//ICPPASTInitializerClause?
+
+//Declarators
+IASTArrayDeclarator getPointerOperators, getName, getNestedDeclarator?, getArrayModifiers, getInitializer?:
+  arrayDeclarator(pointerOperators, name, nestedDeclarator, arrayModifiers, initializer)
+
+ICPPASTFieldDeclarator getPointerOperators, getName, getBitFieldSize, getInitializer?:
+  fieldDeclarator(pointerOperators, name, bitFieldSize, initializer)
+
+ICPPASTFunctionDeclarator getPointerOperators, getName?, getNestedDeclarator?, getParameters, getVirtSpecifiers, getInitializer?, getTrailingReturnType?, getExceptionSpecification, getNoexceptExpression?, isMutable, isPureVirtual:
+  functionDeclarator(pointerOperators, maybeName, nestedDeclarator, parameters, virtSpecifiers, initializer, trailingReturnType, exceptionSpecification, noexceptExpression, isMutable, isPureVirtual)//TODO: maybeName => name ??
+
+ICPPASTDeclarator getName, getPointerOperators, getInitializer?:
+  declarator(name, pointerOperators, initializer)
+
+//DeclSpecifiers
+
+ICPPASTCompositeTypeSpecifier getKey == ICPPASTCompositeTypeSpecifier.k_struct, getVirtSpecifier?, getName, getMembers, getBaseSpecifiers, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  compositeTypeSpecifier(CTS key = struct(), virtSpecifier, name, members, baseSpecifiers, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTCompositeTypeSpecifier getKey == ICPPASTCompositeTypeSpecifier.k_union, getVirtSpecifier?, getName, getMembers, getBaseSpecifiers, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  compositeTypeSpecifier(CTS key = union(), virtSpecifier, name, members, baseSpecifiers, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTCompositeTypeSpecifier getKey == ICPPASTCompositeTypeSpecifier.k_class, getVirtSpecifier?, getName, getMembers, getBaseSpecifiers, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  compositeTypeSpecifier(CTS key = class(), virtSpecifier, name, members, baseSpecifiers, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+
+ICPPASTElaboratedTypeSpecifier getKind == ICPPASTElaboratedTypeSpecifier.k_enum, getName, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  elaboratedTypeSpecifier(ETS kind = enum(), name, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTElaboratedTypeSpecifier getKind == ICPPASTElaboratedTypeSpecifier.k_struct, getName, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  elaboratedTypeSpecifier(ETS kind = struct(), name, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTElaboratedTypeSpecifier getKind == ICPPASTElaboratedTypeSpecifier.k_union, getName, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  elaboratedTypeSpecifier(ETS kind = union(), name, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTElaboratedTypeSpecifier getKind == ICPPASTElaboratedTypeSpecifier.k_class, getName, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  elaboratedTypeSpecifier(ETS kind = class(), name, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+
+IASTNamedTypeSpecifier getName, isConst, isVolatile, isRestrict, isInline:
+  namedTypeSpecifier(name, isConst, isVolatile, isRestrict, isInline)
+
+ICPPASTEnumerationSpecifier getBaseType?, getName, getEnumerators, isOpaque, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  enum(baseType, name, enumerators, isOpaque, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_unspecified, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = unspecified(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_void, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = void(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_char, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = char(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_int, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = int(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_float, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = float(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_double, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = double(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_bool, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = bool(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_wchar_t, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = wchar_t(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_typeof, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = typeof(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_decltype, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = decltype(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_auto, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = auto(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_char16_t, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = char16_t(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_char32_t, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = char32_t(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_int128, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = int128(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_float128, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = float128(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_decimal32, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = decimal32(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_decimal64, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = decimal64(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+ICPPASTSimpleDeclSpecifier getType == ICPPASTSimpleDeclSpecifier.t_decimal128, getDeclTypeExpression?, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline:
+  simpleDeclSpecifier(ISD typ = decimal128(), declTypeExpression, isSigned, isUnsigned, isShort, isLong, isLongLong, isComplex, isImaginary, isFriend, isVirtual, isExplicit, isConstexpr, isThreadLocal, isConst, isVolatile, isRestrict, isInline)
+
+IASTArrayModifier getConstantExpression?:
+  arrayModifier(constantExpression)
+
+ICPPASTPointerToMember getName:
+  pointerToMember(name)
+
+IASTPointer isConst, isVolatile, isRestrict:
+  pointer(isConst, isVolatile, isRestrict)
+
+ICPPASTReferenceOperator isRValueReference:
+  reference(isRvalueReference)
+
+//IASTAttribute
+//IASTAttributeSpecifier
+//IASTToken
+
+
+//Expressions
+ICPPASTArraySubscriptExpression getArrayExpression, getArgument:
+  arraySubscriptExpression(arrayExpression, argument)
+
+ICPPASTDeleteExpression getOperand, isGlobal, isVectored:
+  delete(operand, isGlobal, isVectored)
+
+ICPPASTLambdaExpression getCaptureDefault == ICPPASTLambdaExpression.CaptureDefault.BY_COPY, getCaptures, getDeclarator?, getBody:
+  lambda(CaptDef captureDefault = by_copy(), captures, declarator, body)
+ICPPASTLambdaExpression getCaptureDefault == ICPPASTLambdaExpression.CaptureDefault.BY_REFERENCE, getCaptures, getDeclarator?, getBody:
+  lambda(CaptDef captureDefault = by_reference(), captures, declarator, body)
+ICPPASTLambdaExpression getCaptureDefault == ICPPASTLambdaExpression.CaptureDefault.UNSPECIFIED, getCaptures, getDeclarator?, getBody:
+  lambda(CaptDef captureDefault = unspecified(), captures, declarator, body)
+
+ICPPASTNewExpression getPlacementArguments?, getTypeId, getInitializer?, isGlobal:
+  new(placementArguments, typeId, mInitializer, isGlobal)//TODO: mIni => ini
+
+ICPPASTPackExpansionExpression getPattern:
+  packExpansionExpression(pattern)
+
+ICPPASTSimpleTypeConstructorExpression getDeclSpecifier, getInitializer:
+  simpleTypeConstructor(declSpecifier, initializer)
+
+//CPPASTCompoundStatementExpression
+
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_multiply, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = multiply(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_divide, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = divide(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_modulo, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = modulo(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_plus, getOperand1, getInitOperand2:
   binaryExpression(Operator op = plus(), lhs, rhs)
-    
-IASTBinaryExpression %getOperator == 0, getOperand1, getInitOperand2: 
-  add(lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_minus, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = minus(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_shiftLeft, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = shiftLeft(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_shiftRight, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = shiftRight(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_lessThan, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = lessThan(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_greaterThan, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = greaterThan(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_lessEqual, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = lessEqual(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_greaterEqual, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = greaterEqual(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_binaryAnd, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = binaryAnd(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_binaryXor, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = binaryXor(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_binaryOr, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = binaryOr(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_logicalAnd, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = logicalAnd(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_logicalOr, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = logicalOr(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_assign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = assign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_multiplyAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = multiplyAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_divideAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = divideAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_moduloAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = moduloAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_plusAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = plusAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_minusAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = minusAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_shiftLeftAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = shiftLeftAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_shiftRightAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = shiftRightAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_binaryAndAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = binaryAndAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_binaryXorAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = binaryXorAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_binaryOrAssign, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = binaryOrAssign(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_equals, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = equals(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_notequals, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = notequals(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_pmdot, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = pmdot(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_pmarrow, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = pmarrow(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_max, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = max(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_min, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = min(), lhs, rhs)
+IASTBinaryExpression getOperator == IASTBinaryExpression.op_ellipses, getOperand1, getInitOperand2:
+  binaryExpression(Operator op = ellipses(), lhs, rhs)
+
+ICPPASTCastExpression getOperator == ICPPASTCastExpression.op_cast, getOperand, getTypeId:
+  cast(CastOp castOperator = cast(), operand, typeId)
+ICPPASTCastExpression getOperator == ICPPASTCastExpression.op_dynamic_cast, getOperand, getTypeId:
+  cast(CastOp castOperator = dynamic_cast(), operand, typeId)
+ICPPASTCastExpression getOperator == ICPPASTCastExpression.op_static_cast, getOperand, getTypeId:
+  cast(CastOp castOperator = static_cast(), operand, typeId)
+ICPPASTCastExpression getOperator == ICPPASTCastExpression.op_reinterpret_cast, getOperand, getTypeId:
+  cast(CastOp castOperator = reinterpret_cast(), operand, typeId)
+ICPPASTCastExpression getOperator == ICPPASTCastExpression.op_const_cast, getOperand, getTypeId:
+  cast(CastOp castOperator = const_cast(), operand, typeId)
+
+IASTConditionalExpression getLogicalConditionExpression, getPositiveResultExpression, getNegativeResultExpression:
+  conditional(condition, positive, negative)
+
+IASTExpressionList getExpressions:
+  expressionList(expressions)
+
+ICPPASTFieldReference getFieldOwner, getFieldName, isPointerDereference:
+  fieldReference(fieldOwner, fieldName, isPointerDereference)
+
+IASTFunctionCallExpression getFunctionNameExpression, getArguments:
+  functionCall(functionName, arguments)
+
+IASTIdExpression getName:
+  idExpression(name)
+
+IASTLiteralExpression getKind == IASTLiteralExpression.lk_integer_constant, toString:
+  literal(LK kind = lk_integer_constant(), val)
+IASTLiteralExpression getKind == IASTLiteralExpression.lk_float_constant, toString:
+  literal(LK kind = lk_float_constant(), val)
+IASTLiteralExpression getKind == IASTLiteralExpression.lk_char_constant, toString:
+  literal(LK kind = lk_char_constant(), val)
+IASTLiteralExpression getKind == IASTLiteralExpression.lk_string_literal, toString:
+  literal(LK kind = lk_string_literal(), val)
+IASTLiteralExpression getKind == IASTLiteralExpression.lk_this, toString:
+  literal(LK kind = lk_this(), val)
+IASTLiteralExpression getKind == IASTLiteralExpression.lk_true, toString:
+  literal(LK kind = lk_true(), val)
+IASTLiteralExpression getKind == IASTLiteralExpression.lk_false, toString:
+  literal(LK kind = lk_false(), val)
+IASTLiteralExpression getKind == IASTLiteralExpression.lk_nullptr, toString:
+  literal(LK kind = lk_nullptr(), val)
+
+IASTProblemExpression:
+  problemExpression()
+
+IASTTypeIdInitializerExpression getTypeId, getInitializer:
+  typeIdInitializerExpression(typeId, initializer)
+
+IASTTypeIdExpression getOperator == IASTTypeIdExpression.op_sizeof, getTypeId:
+  typeIdExpression(TIE tie_op = op_sizeof(), typeId)
+IASTTypeIdExpression getOperator == IASTTypeIdExpression.op_typeid, getTypeId:
+  typeIdExpression(TIE tie_op = op_typeof(), typeId)
+IASTTypeIdExpression getOperator == IASTTypeIdExpression.op_alignof, getTypeId:
+  typeIdExpression(TIE tie_op = op_alignof(), typeId)
+IASTTypeIdExpression getOperator == IASTTypeIdExpression.op_sizeofParameterPack, getTypeId:
+  typeIdExpression(TIE tie_op = op_sizeofParameterPack(), typeId)
+
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_prefixIncr, getOperand?:
+  unaryExpression(UnOp operator = op_prefixIncr(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_prefixDecr, getOperand?:
+  unaryExpression(UnOp operator = op_prefixDecr(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_plus, getOperand?:
+  unaryExpression(UnOp operator = op_plus(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_minus, getOperand?:
+  unaryExpression(UnOp operator = op_minus(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_star, getOperand?:
+  unaryExpression(UnOp operator = op_star(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_amper, getOperand?:
+  unaryExpression(UnOp operator = op_amper(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_tilde, getOperand?:
+  unaryExpression(UnOp operator = op_tilde(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_not, getOperand?:
+  unaryExpression(UnOp operator = op_not(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_sizeof, getOperand?:
+  unaryExpression(UnOp operator = op_sizeof(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_postFixIncr, getOperand?:
+  unaryExpression(UnOp operator = op_postFixIncr(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_postFixDecr, getOperand?:
+  unaryExpression(UnOp operator = op_postFixDecr(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_bracketedPrimary, getOperand?:
+  unaryExpression(UnOp operator = op_bracketedPrimary(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_throw, getOperand?:
+  unaryExpression(UnOp operator = op_throw(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_typeid, getOperand?:
+  unaryExpression(UnOp operator = op_typeid(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_alignOf, getOperand?:
+  unaryExpression(UnOp operator = op_alignOf(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_sizeofParameterPack, getOperand?:
+  unaryExpression(UnOp operator = op_sizeofParameterPack(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_noexcept, getOperand?:
+  unaryExpression(UnOp operator = op_noexcept(), moperand)
+IASTUnaryExpression getOperator == IASTUnaryExpression.op_labelReference, getOperand?:
+  unaryExpression(UnOp operator = op_labelReference(), moperand)
+
+
+
+//Statements
+ICPPASTCatchHandler getCatchBody, isCatchAll:
+  catchHandler(catchBody, isCatchAll)
+
+ICPPASTRangeBasedForStatement getDeclaration, getInitializerClause, getBody:
+  rangeBasedFor(declaration, initializerClause, body)
+
+ICPPASTTryBlockStatement getTryBody, getCatchHandlers:
+  tryBlock(tryBody, catchHandlers)
+
+//IASTAmbiguousStatement
+
+IASTBreakStatement:
+  break()
+
+IASTCaseStatement getExpression:
+  case(expression)
+
+IASTCompoundStatement getStatements:
+  compoundStatement(statements)
+
+IASTContinueStatement:
+  continue()
+
+IASTDeclarationStatement getDeclaration:
+  declarationStatement(declaration)
+
+IASTDefaultStatement:
+  default() 
+
+IASTDoStatement getBody, getCondition:
+  do(body, condition)
+
+IASTExpressionStatement getExpression:
+  expressionStatement(expression)
+
+ICPPASTForStatement getInitializerStatement, getConditionDeclaration != null, getIterationExpression, getBody:
+  for(initializer, conditionDeclaration, iterationExpression, body)
+IASTForStatement getInitializerStatement, getConditionExpression != null, getIterationExpression, getBody:
+  for(initializer, conditionExpression, iterationExpression, body)
+
+IASTGotoStatement getName:
+  goto(name)
+
+ICPPASTIfStatement getConditionDeclaration != null, getThenClause, getElseClause?:
+  if(conditionDeclaration, thenClause, elseClause)
+IASTIfStatement getConditionExpression != null, getThenClause, getElseClause?:
+  if(conditionExpression, thenClause, elseClause)
+
+IASTLabelStatement getName, getNestedStatement:
+  label(name, nestedStatement)
+
+IASTNullStatement:
+  nullStatement()
+
+IASTProblemStatement:
+  problemStatement()
+
+IASTReturnStatement getReturnValue?, getReturnArgument?:
+  return(returnVal, returnArgument)
+
+ICPPASTSwitchStatement getControllerDeclaration != null, getBody:
+  switch(controllerDeclaration, body)
+IASTSwitchStatement getControllerExpression != null, getBody:
+  switch(controllerExpression, body)
+
+ICPPASTWhileStatement getConditionDeclaration != null, getBody:
+  while(conditionDeclaration, body)
+IASTWhileStatement getCondition != null, getBody:
+  while(conditionExpression, body)
+
+IASTTypeId getDeclSpecifier, getAbstractDeclarator:
+  typeId(declSpecifier, abstractDeclarator)
+
+IASTEnumerator getName, getValue?:
+  enumerator(name, value)
+
+//TODO: Remove
+//IASTProblem:
+//  problem()
+
+//TODO: put getNameSpecifier? back
+ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_public, isVirtual:
+  baseSpecifier(VSVis visibility = v_public(), isVirtual)
+ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_protected, isVirtual:
+  baseSpecifier(VSVis visibility = v_protected(), isVirtual)
+ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_private, isVirtual:
+  baseSpecifier(VSVis visibility = v_private(), isVirtual)
+ICPPASTBaseSpecifier getVisibility == 0, isVirtual:
+  baseSpecifier(VSVis visibility = v_unspecified(), isVirtual)
+//ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_public, isVirtual, getNameSpecifier?:
+//  baseSpecifier(VSVis visibility = v_public(), isVirtual, nameSpecifier)
+//ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_protected, isVirtual, getNameSpecifier?:
+//  baseSpecifier(VSVis visibility = v_protected(), isVirtual, nameSpecifier)
+//ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_private, isVirtual, getNameSpecifier?:
+//  baseSpecifier(VSVis visibility = v_private(), isVirtual, nameSpecifier)
+//ICPPASTBaseSpecifier getVisibility == 0, isVirtual, getNameSpecifier?:
+//  baseSpecifier(VSVis visibility = v_unspecified(), isVirtual, nameSpecifier)
+
+ICPPASTNamespaceDefinition getName, getDeclarations, isInline:
+  namespaceDefinition(name, declarations, isInline)
+
+ICPPASTParameterDeclaration getDeclSpecifier, getDeclarator?:
+  parameter(declSpecifier, declarator)
+
+ICPPASTSimpleTypeTemplateParameter getParameterType == ICPPASTSimpleTypeTemplateParameter.st_class, getName, getDefaultType?:
+  simpleTypeTemplateParameter(STTP typ = st_class(), name, defaultType)
+ICPPASTSimpleTypeTemplateParameter getParameterType == ICPPASTSimpleTypeTemplateParameter.st_typename, getName, getDefaultType?:
+  simpleTypeTemplateParameter(STTP typ = st_typename(), name, defaultType)
+
+ICPPASTTemplatedTypeTemplateParameter getTemplateParameters, getName:
+  templatedTypeTemplateParameter(parameters, name)
+
+ICPPASTCapture capturesThisPointer, isByReference, getIdentifier?:
+  capture(capturesThisPointer, isByReference, identifier)
+
+ICPPASTArrayDesignator getSubscriptExpression:
+  arrayDesignator(subscriptExpression)
+
+ICPPASTFieldDesignator getName:
+  fieldDesignator(name)
+
+IGPPASTArrayRangeDesignator getRangeFloor, getRangeCeiling:
+  arrayRangeDesignator(rangeFloor, rangeCeiling)
+
+ICPPASTVirtSpecifier getKind == ICPPASTVirtSpecifier.SpecifierKind.Final:
+  virtSpecifier(VSKind kind = final())
+ICPPASTVirtSpecifier getKind == ICPPASTVirtSpecifier.SpecifierKind.Override:
+  virtSpecifier(VSKind kind = override())
+
+//TODO: check what it is
+ICPPASTClassVirtSpecifier getKind == ICPPASTClassVirtSpecifier.SpecifierKind.Final:
+  classVirtSpecifier(CVS kind = final())
