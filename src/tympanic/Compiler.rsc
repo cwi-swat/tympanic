@@ -314,9 +314,11 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '  private static TypeStore typestore = new TypeStore();
       '  private static TypeFactory tf = TypeFactory.getInstance();
       '  private IValueFactory vf;
+      '  private IEvaluatorContext ctx;
       '
-      '  public Marshaller(IValueFactory vf) {
+      '  public Marshaller(IValueFactory vf, IEvaluatorContext ctx) {
       '    this.vf = vf;
+      '    this.ctx = ctx;
       '  }
       '
       '<for (str adtName <- range(idToStr)) {>  private static final Type _<adtName> = tf.abstractDataType(typestore, \"<adtName>\");
@@ -331,7 +333,7 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '    = tf.constructor(typestore, _Maybe, \"just\", tf.parameterType(\"A\"), \"val\");
       '
       '<for (Id adtName <- idToStr) {>  public IConstructor map(<adtName> node) {
-      '    return new Marshaller(vf).visit(node);
+      '    return new Marshaller(vf, ctx).visit(node);
       '  }
       '<}>
       '<for (Id adtName <- idToStr) {>  public IConstructor visit(<adtName> node) {
