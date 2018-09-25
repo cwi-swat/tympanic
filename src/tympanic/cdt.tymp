@@ -449,9 +449,9 @@ IASTDoStatement getBody, getCondition:
 IASTExpressionStatement getExpression:
   expressionStatement(expression)
 
-ICPPASTForStatement getInitializerStatement, getConditionDeclaration != null, getIterationExpression, getBody:
+ICPPASTForStatement getInitializerStatement, getConditionDeclaration != null, getIterationExpression?, getBody:
   for(initializer, conditionDeclaration, iterationExpression, body)
-IASTForStatement getInitializerStatement, getConditionExpression != null, getIterationExpression, getBody:
+IASTForStatement getInitializerStatement, getConditionExpression != null, getIterationExpression?, getBody:
   for(initializer, conditionExpression, iterationExpression, body)
 
 IASTGotoStatement getName:
