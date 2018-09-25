@@ -285,6 +285,13 @@ str declareTypes(ASTMapping astMapping, M3 m3model) {
     }
     ret += "\n";
   }
+  for (str adtName <- range(idToStr)) {
+    ret += "private static final Type _<adtName>_________error
+           '  = tf.constructor(typestore, _<adtName>, \"________error\", tf.stringType(), \"fileLocation\");
+           'private static final Type _<adtName>_________null
+           '  = tf.constructor(typestore, _<adtName>, \"________null\");\n";
+  }
+  ret += "\n";
   return ret;
 }
 
@@ -340,6 +347,9 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '  }
       '<}>
       '<for (Id adtName <- idToStr) {>  public IConstructor visit(<adtName> node) {
+      '    if (node == null) {
+      '      return vf.constructor(_<idToStr[adtName]>_________null);
+      '    }
       '<for (/Mapping mapping <- astMapping.mappings, javaIds[mapping.javaType] in {l | ctor <- javaNtToCtor[idToStr[adtName]], loc l := javaStrs[ctor], <l,javaIds[adtName]> in ex}) {>    if (node instanceof <mapping.javaType>) {
       '      if (<makeConstructorGuard(mapping)>) {
       '        <makeConstructor(astMapping, mapping, adtName)>
