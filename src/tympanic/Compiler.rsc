@@ -317,6 +317,7 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '
       'import io.usethesource.vallang.*;
       'import io.usethesource.vallang.type.*;
+      'import org.rascalmpl.interpreter.IEvaluatorContext;
       '
       '<for (loc l <- sort(range(javaIds))) {>import <unescapeJavaType(l)>;
       '<}>
