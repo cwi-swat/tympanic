@@ -340,7 +340,7 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '  }
       '<}>
       '<for (Id adtName <- idToStr) {>  public IConstructor visit(<adtName> node) {
-      '<for (/Mapping mapping <- astMapping.mappings, getNonterminal(javaIds[mapping.javaType]) == javaIds[adtName]) {>    if (node instanceof <mapping.javaType>) {
+      '<for (/Mapping mapping <- astMapping.mappings, javaIds[mapping.javaType] in {l | ctor <- javaNtToCtor[idToStr[adtName]], loc l := javaStrs[ctor], <l,javaIds[adtName]> in ex}) {>    if (node instanceof <mapping.javaType>) {
       '      if (<makeConstructorGuard(mapping)>) {
       '        <makeConstructor(astMapping, mapping, adtName)>
       '      }
