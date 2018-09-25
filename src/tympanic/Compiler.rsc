@@ -88,6 +88,7 @@ void fillRelations(ASTMapping astMapping, M3 m3model) {
   adtIds = {typ.javaType | typ <- astMapping.datatypes};
   adtNames = extractAdts(astMapping.datatypes);
   javaIds = javaIdToLoc(astMapping, m3);
+  javaStrs = javaStrToLoc(astMapping, m3);
   topLevels = {javaIds[bla] | bla <- adtIds};
   ex = m3.extends*;
   idToStr = (typ.javaType : "<typ.adt>" | typ <- astMapping.datatypes);
