@@ -345,8 +345,9 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '        <makeConstructor(astMapping, mapping, adtName)>
       '      }
       '    }
-      '<}> 
-      '    throw new RuntimeException(\"Encountered unknown <adtName> subtype \" + node.getClass().getSimpleName());
+      '<}>
+      '    ctx.getStdErr().println(\"Encountered unknown <adtName> subtype \" + node.getClass().getSimpleName() + \" at \" + node.getFileLocation());
+      '    return vf.constructor(_<idToStr[adtName]>_________error, vf.string(node.getFileLocation().toString()));
       '  }
       '<}>
       '}";
