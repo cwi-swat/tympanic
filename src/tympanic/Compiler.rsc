@@ -125,6 +125,7 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
   }
   for (str adt <- adts<0>) {
     adts += <adt, "________error(str fileLocation)">;
+    adts += <adt, "________null()">;
   }
   return "module <astMapping.export>::Data
          '
