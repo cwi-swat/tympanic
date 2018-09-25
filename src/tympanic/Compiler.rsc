@@ -16,6 +16,7 @@ bool relationsFilled = false;
 set[Id] adtIds = {};
 set[str] adtNames = {};
 map[Id, loc] javaIds = ();
+map[str, loc] javaStrs = ();
 set[loc] topLevels = {};
 rel[loc, loc] ex = {};
 map[Id, str] idToStr = ();
@@ -42,6 +43,20 @@ map[Id,loc] javaIdToLoc(ASTMapping mapping, M3 m3) {
   }
   //for (Id i <- ret) println("<i> : <ret[i]>");
   //return ();
+  return ret;
+}
+
+map[str,loc] javaStrToLoc(ASTMapping mapping, M3 m3) {
+  set[loc] candidates = {l|l<-(m3.containment*)[|java+package:///org/eclipse/cdt/core/dom/ast|], l.scheme in {"java+class", "java+interface"}};
+  map[str,loc] ret = ();
+  set[Id] javaIds = {datatype.javaType | datatype <- mapping.datatypes} + {datatype.javaType | datatype <- mapping.mappings};
+  for (Id id <- javaIds) {
+    matches = [candidate | loc candidate <- candidates, candidate.file == "<id>"];
+    if (size(matches)!=1) {
+      throw "Error looking up Java Type <id> in m3";
+    }
+    ret += ("<id>" : matches[0]);
+  }
   return ret;
 }
 
