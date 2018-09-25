@@ -22,7 +22,7 @@ types
   ICPPASTCapture => Capture
   ICPPASTDesignator => Designator
   ICPPASTVirtSpecifier => VirtSpecifier
-  //ICPPASTNameSpecifier => Name
+  ICPPASTNameSpecifier => Name
   ICPPASTClassVirtSpecifier => ClassVirtSpecifier
 
 constructors
@@ -38,11 +38,8 @@ ICPPASTConversionName toString, getTypeId:
 ICPPASTOperatorName toString:
   operatorName(name)
 
-//TODO: put getQualifier back
-//ICPPASTQualifiedName getQualifier, getLastName:
-//  qualifiedName(qualifier, lastName)
-ICPPASTQualifiedName getLastName:
-  qualifiedName(lastName)
+ICPPASTQualifiedName getQualifier, getLastName:
+  qualifiedName(qualifier, lastName)
 
 IASTName toString:
   name(name)
@@ -490,27 +487,14 @@ IASTTypeId getDeclSpecifier, getAbstractDeclarator:
 IASTEnumerator getName, getValue?:
   enumerator(name, value)
 
-//TODO: Remove
-//IASTProblem:
-//  problem()
-
-//TODO: put getNameSpecifier? back
-ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_public, isVirtual:
-  baseSpecifier(VSVis visibility = v_public(), isVirtual)
-ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_protected, isVirtual:
-  baseSpecifier(VSVis visibility = v_protected(), isVirtual)
-ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_private, isVirtual:
-  baseSpecifier(VSVis visibility = v_private(), isVirtual)
-ICPPASTBaseSpecifier getVisibility == 0, isVirtual:
-  baseSpecifier(VSVis visibility = v_unspecified(), isVirtual)
-//ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_public, isVirtual, getNameSpecifier?:
-//  baseSpecifier(VSVis visibility = v_public(), isVirtual, nameSpecifier)
-//ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_protected, isVirtual, getNameSpecifier?:
-//  baseSpecifier(VSVis visibility = v_protected(), isVirtual, nameSpecifier)
-//ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_private, isVirtual, getNameSpecifier?:
-//  baseSpecifier(VSVis visibility = v_private(), isVirtual, nameSpecifier)
-//ICPPASTBaseSpecifier getVisibility == 0, isVirtual, getNameSpecifier?:
-//  baseSpecifier(VSVis visibility = v_unspecified(), isVirtual, nameSpecifier)
+ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_public, isVirtual, getNameSpecifier?:
+  baseSpecifier(VSVis visibility = v_public(), isVirtual, nameSpecifier)
+ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_protected, isVirtual, getNameSpecifier?:
+  baseSpecifier(VSVis visibility = v_protected(), isVirtual, nameSpecifier)
+ICPPASTBaseSpecifier getVisibility == ICPPASTBaseSpecifier.v_private, isVirtual, getNameSpecifier?:
+  baseSpecifier(VSVis visibility = v_private(), isVirtual, nameSpecifier)
+ICPPASTBaseSpecifier getVisibility == 0, isVirtual, getNameSpecifier?:
+  baseSpecifier(VSVis visibility = v_unspecified(), isVirtual, nameSpecifier)
 
 ICPPASTNamespaceDefinition getName, getDeclarations, isInline:
   namespaceDefinition(name, declarations, isInline)
