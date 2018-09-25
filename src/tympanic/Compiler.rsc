@@ -352,7 +352,7 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '    if (node == null) {
       '      return vf.constructor(_<idToStr[adtName]>_________null);
       '    }
-      '<for (/Mapping mapping <- astMapping.mappings, javaIds[mapping.javaType] in {l | ctor <- javaNtToCtor[idToStr[adtName]], loc l := javaStrs[ctor], <l,javaIds[adtName]> in ex}) {>    if (node instanceof <mapping.javaType>) {
+      '<for (/Mapping mapping <- astMapping.mappings, javaIds[mapping.javaType] in {l | ctor <- javaNtToCtor[idToStr[adtName]], loc l := javaStrs[ctor]/*, <l,javaIds[adtName]> in ex*/}) {>    if (node instanceof <mapping.javaType>) {
       '      if (<makeConstructorGuard(mapping)>) {
       '        <makeConstructor(astMapping, mapping, adtName)>
       '      }
