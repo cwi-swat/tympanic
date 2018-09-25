@@ -123,6 +123,9 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
     }
     adts += <idToStr[invertUnique(javaIds)[nonterminal]], "\\<mapping.constructor.name>(<intercalate(", ", args)>)">;
   }
+  for (str adt <- adts<0>) {
+    adts += <adt, "________error(str fileLocation)">;
+  }
   return "module <astMapping.export>::Data
          '
          'import util::Maybe;
