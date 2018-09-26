@@ -111,16 +111,26 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
     list[Arg] rascalArgs = ([] | it + arg | Arg arg <- mapping.constructor.args);
     for (field:(JavaField)`<Field _>` <- mapping.fields) {
       rascalArg = rascalArgs[i];
-      if ((Arg)`<Id _> <Id _> = <RascalValue _>` := rascalArg) {
-        args += "<rascalArg.\type> \\<rascalArg.name>";
-      } else {
+      if ((JavaField)`(<Id castType>) <Id _>` := field) {
         argName = "\\<rascalArg.name>";
-        fieldLoc = getJavaField(field.field.id, javaIds[mapping.javaType]);
-        argType = makeArg(m3.types[fieldLoc]);
-        if ((Field)`<Id _>?` := field.field) {
-          args += "Maybe[<argType>] <argName>";
+        argType = idToStr[invertUnique(javaIds)[getNonterminal(javaIds[castType])]];
+        args += "<argType> <argName>";
+      } else if ((JavaField)`(<Id castType>[]) <Id _>` := field) {
+        argName = "\\<rascalArg.name>";
+        argType = idToStr[invertUnique(javaIds)[getNonterminal(javaIds[castType])]];
+        args += "list[<argType>] <argName>";
+      } else {
+        if ((Arg)`<Id _> <Id _> = <RascalValue _>` := rascalArg) {
+          args += "<rascalArg.\type> \\<rascalArg.name>";
         } else {
-          args += "<argType> <argName>";
+          argName = "\\<rascalArg.name>";
+          fieldLoc = getJavaField(field.field.id, javaIds[mapping.javaType]);
+          argType = makeArg(m3.types[fieldLoc]);
+          if ((Field)`<Id _>?` := field.field) {
+            args += "Maybe[<argType>] <argName>";
+          } else {
+            args += "<argType> <argName>";
+          }
         }
       }
       i = i + 1;
