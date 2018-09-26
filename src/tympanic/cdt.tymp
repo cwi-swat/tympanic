@@ -44,9 +44,8 @@ ICPPASTQualifiedName getQualifier, getLastName:
 IASTName toString:
   name(name)
 
-//FIXME: templateArguments returns IASTNode[]
-//ICPPASTTemplateId getTemplateName, getTemplateArguments:
-//  templateId(templateName, templateArguments)
+ICPPASTTemplateId getTemplateName, (IASTExpression[]) getTemplateArguments:
+  templateId(templateName, templateArguments)
 
 //Declarations
 ICPPASTAliasDeclaration getAlias, getMappingTypeId:
