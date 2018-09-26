@@ -236,6 +236,14 @@ str makeConstructor(ASTMapping astMapping, Mapping mapping, Id adtName) {
     str javaArgType = getJavaArgType(jfloc);
     if ((Arg)`<Id typ> <Id name> = <RascalValue val>` := rascalArgs[i]) {
       ret += "IConstructor $arg<i> = vf.constructor(_<typ>_<"<val>"[0..-2]>);\n"; //TODO use val.id
+    } else if ((JavaField)`(<Id castType>) <Id _>` := jf) {
+      ret += "IConstructor $arg<i> = visit((<castType>)(((<mapping.javaType>) node).<jf.field.id>()));\n";
+    } else if ((JavaField)`(<Id castType>[]) <Id _>` := jf) {
+      ret += "IListWriter $arg<i>_list = vf.listWriter();
+             'for (<javaArgType[0..-2]> $$arg<i> : ((<mapping.javaType>) node).<jf.field.id>()) {
+             '  $arg<i>_list.append(visit((<castType>)$$arg<i>));
+             '}
+             'IList $arg<i> = $arg<i>_list.done();\n";
     } else if (/\[\]$/ := javaArgType && (JavaField)`<Id _>?` := jf) {
       ret += "IListWriter $arg<i>_list = vf.listWriter();
              'if (((<mapping.javaType>) node).<jf.field.id>() != null) {
@@ -274,6 +282,10 @@ str makeConstructor(ASTMapping astMapping, Mapping mapping, Id adtName) {
 str getArgumentType(Field field, Arg arg, Mapping mapping) {
   if ((Arg)`<Id typ> <Id _> = <RascalValue _>` := arg){ 
     return "_<typ>";
+  } else if ((Field)`(<Id castType>) <Id _>` := field) {
+    return "_<idToStr[invertUnique(javaIds)[getNonterminal(javaIds[castType])]]>";
+  } else if ((Field)`(<Id castType>[]) <Id _>` := field) {
+    return "tf.listType(_<idToStr[invertUnique(javaIds)[getNonterminal(javaIds[castType])]]>)";
   } else {
     str typ = "<makeArg(m3.types[getJavaField(field.id, javaIds[mapping.javaType])])>";
     switch (typ) {
