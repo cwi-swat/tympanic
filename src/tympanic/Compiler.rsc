@@ -33,7 +33,11 @@ set[str] extractAdts(Datatype* types) = { "<adt>" | (Datatype)`<Id _> =\> <Id ad
 map[Id,loc] javaIdToLoc(ASTMapping mapping, M3 m3) {
   set[loc] candidates = {l|l<-(m3.containment*)[|java+package:///org/eclipse/cdt/core/dom/ast|], l.scheme in {"java+class", "java+interface"}};
   map[Id,loc] ret = ();
-  set[Id] javaIds = {datatype.javaType | datatype <- mapping.datatypes} + {datatype.javaType | datatype <- mapping.mappings};
+  set[Id] javaIds
+    = {datatype.javaType | datatype <- mapping.datatypes}
+    + {datatype.javaType | datatype <- mapping.mappings}
+    + {castType | /(Field)`(<Id castType>) <Id _>` := mapping}
+    + {castType | /(Field)`(<Id castType>[]) <Id _>` := mapping};
   for (Id id <- javaIds) {
     matches = [candidate | loc candidate <- candidates, candidate.file == "<id>"];
     if (size(matches)!=1) {
