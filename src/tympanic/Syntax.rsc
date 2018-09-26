@@ -27,6 +27,8 @@ syntax Field
   | Id id "==" JavaValue val
   | Id id "!=" JavaValue val
   | Id id "?"
+  | "(" Id castType ")" Id id
+  | "(" Id castType "[" "]" ")" Id id
   ;
   
 syntax Constructor
