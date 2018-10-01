@@ -138,7 +138,7 @@ str compileADT(ASTMapping astMapping, M3 m3model) {
     adts += <idToStr[invertUnique(javaIds)[nonterminal]], "\\<mapping.constructor.name>(<intercalate(", ", args)>)">;
   }
   for (str adt <- adts<0>) {
-    adts += <adt, "________error(str fileLocation)">;
+    adts += <adt, "________error(str className)">;
     adts += <adt, "________null()">;
   }
   return "module <astMapping.export>::Data
@@ -314,7 +314,7 @@ str declareTypes(ASTMapping astMapping, M3 m3model) {
   }
   for (str adtName <- range(idToStr)) {
     ret += "private static final Type _<adtName>_________error
-           '  = tf.constructor(typestore, _<adtName>, \"________error\", tf.stringType(), \"fileLocation\");
+           '  = tf.constructor(typestore, _<adtName>, \"________error\", tf.stringType(), \"className\");
            'private static final Type _<adtName>_________null
            '  = tf.constructor(typestore, _<adtName>, \"________null\");\n";
   }
@@ -384,12 +384,11 @@ str compileMarshaller(ASTMapping astMapping, M3 m3model) {
       '      }
       '    }
       '<}>
-      '    ctx.getStdErr().println(\"Encountered unknown <adtName> subtype \" + node.getClass().getSimpleName() + \" at \" + node.getFileLocation());
-      '    return vf.constructor(_<idToStr[adtName]>_________error, vf.string(node.getFileLocation().toString()));
+      '    ctx.getStdErr().println(\"Encountered unknown <adtName> subtype \" + node.getClass().getSimpleName());
+      '    return vf.constructor(_<idToStr[adtName]>_________error, vf.string(node.getClass().getSimpleName()));
       '  }
       '<}>
       '}";
-  //println(marshaller);
   return marshaller;
 }
 
